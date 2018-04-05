@@ -24,6 +24,8 @@ public class Kernel {
     private FrameTableEntry[] frameTable;
 
     private ArrayList<String> instructions;
+    private ArrayList<HistoryStructure> historyStructures;
+
     private int instructionIndex;
 
     {
@@ -34,6 +36,7 @@ public class Kernel {
 
         pcb = new LinkedList<>();
         freeFrames = new TreeSet<>();
+        historyStructures = new ArrayList<>();
 
         frameTable = new FrameTableEntry[RAM / PAGE_SIZE];
 
@@ -49,6 +52,10 @@ public class Kernel {
 
     public void parseNextInstruction() {
         String instruction = instructions.get(instructionIndex++);
+        if (historyStructures.size() > instructionIndex - 1) {
+            historyStructures.remove(instructionIndex - 1);
+        }
+        historyStructures.add(instructionIndex - 1, new HistoryStructure());
         if (!instruction.contains("-1")) {
             int pID = Integer.parseInt(instruction.substring(0, instruction.indexOf(" ")));
             instruction = instruction.substring(instruction.indexOf(" ") + 1);
@@ -62,6 +69,7 @@ public class Kernel {
 
             this.freeProcess(pID);
         }
+        System.out.println(historyStructures);
     }
 
     public void undoLastInstruction() {
@@ -81,12 +89,9 @@ public class Kernel {
                     break;
                 }
             }
-            loadInstruction = loadInstruction.substring(loadInstruction.indexOf(" ") + 1);
-            int codeSize = Integer.parseInt(loadInstruction.substring(0, loadInstruction.indexOf(" ")));
-            loadInstruction = loadInstruction.substring(loadInstruction.indexOf(" ") + 1);
-            int dataSize = Integer.parseInt(loadInstruction);
 
-            this.loadProcess(pID, codeSize, dataSize);
+            System.out.println(historyStructures.get(localIndex + 1));
+            this.loadProcess(pID, historyStructures.get(localIndex + 1).getCodeFrames(), historyStructures.get(localIndex + 1).getDataFrames());
         }
     }
 
@@ -95,6 +100,27 @@ public class Kernel {
         int dataPages = (dataSize + PAGE_SIZE - 1) / PAGE_SIZE;
         PCBEntry pcbEntry = new PCBEntry(pID);
         this.assignPages(pcbEntry, codePages, dataPages);
+        pcb.add(pcbEntry);
+    }
+
+    private void loadProcess(int pID, ArrayList<Integer> codeFrames, ArrayList<Integer> dataFrames) {
+        PCBEntry pcbEntry = new PCBEntry(pID);
+
+        for (int i = 0; i < codeFrames.size(); i++) {
+            freeFrames.remove(codeFrames.get(i));
+
+            frameTable[codeFrames.get(i)] = new FrameTableEntry(pID, i, FrameTableEntry.FRAME_TYPE.CODE);
+        }
+
+        for (int i = 0; i < dataFrames.size(); i++) {
+            freeFrames.remove(dataFrames.get(i));
+
+            frameTable[dataFrames.get(i)] = new FrameTableEntry(pID, i, FrameTableEntry.FRAME_TYPE.DATA);
+        }
+
+        pcbEntry.addCodePages(codeFrames.size());
+        pcbEntry.addDataPages(dataFrames.size());
+
         pcb.add(pcbEntry);
     }
 
@@ -118,17 +144,17 @@ public class Kernel {
         for (int i = 0; i < codePages; i++) {
             int nextFreeFrame = freeFrames.first();
             freeFrames.remove(nextFreeFrame);
-            System.out.println("getting next frame : " + nextFreeFrame);
 
             frameTable[nextFreeFrame] = new FrameTableEntry(p.getpID(), i, FrameTableEntry.FRAME_TYPE.CODE);
+            historyStructures.get(instructionIndex - 1).addCodeFrame(nextFreeFrame);
         }
 
         for (int i = 0; i < dataPages; i++) {
             int nextFreeFrame = freeFrames.first();
             freeFrames.remove(nextFreeFrame);
-            System.out.println("getting next frame : " + nextFreeFrame);
 
             frameTable[nextFreeFrame] = new FrameTableEntry(p.getpID(), i, FrameTableEntry.FRAME_TYPE.DATA);
+            historyStructures.get(instructionIndex - 1).addDataFrame(nextFreeFrame);
         }
 
         p.addCodePages(codePages);
