@@ -59,6 +59,34 @@ public class Kernel {
             this.loadProcess(pID, codeSize, dataSize);
         } else {
             int pID = Integer.parseInt(instruction.substring(0, instruction.indexOf(" ")));
+
+            this.freeProcess(pID);
+        }
+    }
+
+    public void undoLastInstruction() {
+        String instruction = instructions.get(--instructionIndex);
+        if (!instruction.contains("-1")) {
+            int pID = Integer.parseInt(instruction.substring(0, instruction.indexOf(" ")));
+
+            freeProcess(pID);
+        } else {
+            int pID = Integer.parseInt(instruction.substring(0, instruction.indexOf(" ")));
+
+            String loadInstruction;
+            int localIndex = instructionIndex - 1;
+            while (true) {
+                loadInstruction = instructions.get(localIndex--);
+                if (pID == Integer.parseInt(loadInstruction.substring(0, loadInstruction.indexOf(" ")))) {
+                    break;
+                }
+            }
+            loadInstruction = loadInstruction.substring(loadInstruction.indexOf(" ") + 1);
+            int codeSize = Integer.parseInt(loadInstruction.substring(0, loadInstruction.indexOf(" ")));
+            loadInstruction = loadInstruction.substring(loadInstruction.indexOf(" ") + 1);
+            int dataSize = Integer.parseInt(loadInstruction);
+
+            this.loadProcess(pID, codeSize, dataSize);
         }
     }
 
@@ -68,6 +96,22 @@ public class Kernel {
         PCBEntry pcbEntry = new PCBEntry(pID);
         this.assignPages(pcbEntry, codePages, dataPages);
         pcb.add(pcbEntry);
+    }
+
+    private void freeProcess(int pID) {
+        for (PCBEntry pcbEntry : pcb) {
+            if (pcbEntry.getpID() == pID) {
+                pcb.remove(pcbEntry);
+                break;
+            }
+        }
+
+        for (int i = 0; i < frameTable.length; i++) {
+            if (frameTable[i] != null && frameTable[i].getpID() == pID) {
+                frameTable[i] = null;
+                freeFrames.add(i);
+            }
+        }
     }
 
     private void assignPages(PCBEntry p, int codePages, int dataPages) {
@@ -89,6 +133,26 @@ public class Kernel {
 
         p.addCodePages(codePages);
         p.addDataPages(dataPages);
+    }
+
+    public ArrayList<String> getNewTexts() {
+        ArrayList<String> newTexts = new ArrayList<>();
+        for (FrameTableEntry frameTableEntry : frameTable) {
+            if (frameTableEntry == null) {
+                newTexts.add("Free");
+            } else {
+                newTexts.add("Process " + frameTableEntry.getpID() + " -> " + (frameTableEntry.getFrameType() == FrameTableEntry.FRAME_TYPE.CODE ? "C" : "D") + frameTableEntry.getPageMapping());
+            }
+        }
+        return newTexts;
+    }
+
+    public boolean getDone() {
+        return (instructionIndex >= instructions.size());
+    }
+
+    public boolean getFirst() {
+        return (instructionIndex <= 0);
     }
 
     public int getNumFrames() {

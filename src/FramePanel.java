@@ -1,6 +1,7 @@
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.util.ArrayList;
 
 public class FramePanel extends JPanel {
 
@@ -52,5 +53,14 @@ public class FramePanel extends JPanel {
         t.setEditable(false);
         t.setText("Free");
         return t;
+    }
+
+    public void updateTexts(ArrayList<String> newTexts) {
+        if (newTexts.size() != frameTexts.length) {
+            throw new IllegalArgumentException();
+        }
+        for (int i = 0; i < frameTexts.length; i++) {
+            frameTexts[i].setText(newTexts.get(i));
+        }
     }
 }

@@ -25,7 +25,7 @@ public class FrameTableEntry {
         return pageMapping;
     }
 
-    public FRAME_TYPE isCodeFrame() {
+    public FRAME_TYPE getFrameType() {
         return frameType;
     }
 }

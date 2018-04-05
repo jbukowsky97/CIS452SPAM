@@ -20,7 +20,9 @@ public class ProcessDisplay extends JPanel {
     private JPanel[] codeEntries;
     private JPanel[] dataEntries;
 
-    private JTextField title;
+    private JLabel title;
+    private JLabel codeTitle;
+    private JLabel dataTitle;
 
     private JTextField[] codeTexts;
     private JTextField[] dataTexts;
@@ -29,10 +31,16 @@ public class ProcessDisplay extends JPanel {
 
     {
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        this.setAlignmentX(JPanel.CENTER_ALIGNMENT);
 
         mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.X_AXIS));
         mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        codeTitle = new JLabel("Code PT");
+        codeTitle.setHorizontalAlignment(JLabel.CENTER);
+        dataTitle = new JLabel("Data PT");
+        dataTitle.setHorizontalAlignment(JLabel.CENTER);
 
         codePanel = new JPanel();
         codePanel.setLayout(new BoxLayout(codePanel, BoxLayout.Y_AXIS));
@@ -40,11 +48,15 @@ public class ProcessDisplay extends JPanel {
         codePanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         mainPanel.add(codePanel);
 
+        codePanel.add(codeTitle);
+
         dataPanel = new JPanel();
         dataPanel.setLayout(new BoxLayout(dataPanel, BoxLayout.Y_AXIS));
         dataPanel.setAlignmentY(JPanel.TOP_ALIGNMENT);
         dataPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         mainPanel.add(dataPanel);
+
+        dataPanel.add(dataTitle);
 
         this.add(mainPanel);
     }
@@ -52,14 +64,14 @@ public class ProcessDisplay extends JPanel {
     public ProcessDisplay(PCBEntry pcbEntry) {
         this.pcbEntry = pcbEntry;
 
-        title = new JTextField("PT for Process " + pcbEntry.getpID());
-        title.setEditable(false);
+        title = new JLabel("PTs for Process " + pcbEntry.getpID());
+        title.setHorizontalAlignment(JLabel.CENTER);
 
         this.createCodePanels();
         this.createDataPanels();
 
         this.add(title);
-        this.add(mainPanel):
+        this.add(mainPanel);
 
         this.setMaximumSize(this.getPreferredSize());
     }

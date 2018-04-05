@@ -27,10 +27,15 @@ public class GUI extends JPanel {
     private JTextArea outputArea;
 
     private JButton nextButton;
+    private JButton prevButton;
 
     private Kernel kernel;
 
+    private MyActionListener myActionListener;
+
     {
+        myActionListener = new MyActionListener();
+
         jFrame = new JFrame();
         jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jFrame.setResizable(false);
@@ -54,11 +59,18 @@ public class GUI extends JPanel {
 
         instructionArea = new JTextArea();
         instructionArea.setEditable(false);
+        instructionPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         instructionPanel.add(instructionArea);
 
         nextButton = new JButton("Next Instruction");
-        nextButton.addActionListener(new MyActionListener());
+        nextButton.addActionListener(myActionListener);
+        nextButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         instructionPanel.add(nextButton);
+
+        prevButton = new JButton("Prev Instruction");
+        prevButton.addActionListener(myActionListener);
+        prevButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        instructionPanel.add(prevButton);
 
         mainPanel.add(instructionPanel);
 
@@ -80,6 +92,8 @@ public class GUI extends JPanel {
 
         kernel = new Kernel(instructions);
 
+        prevButton.setEnabled(!kernel.getFirst());
+
         framePanel = new FramePanel(kernel.getNumFrames());
         mainPanel.add(framePanel);
 
@@ -94,12 +108,27 @@ public class GUI extends JPanel {
     }
 
     private void refreshDisplay() {
+        processDisplays.clear();
+        for (PCBEntry pcbEntry : kernel.getPcb()) {
+            processDisplays.add(new ProcessDisplay(pcbEntry));
+        }
         this.remove(processPanel);
         processPanel = new JPanel();
         for (ProcessDisplay processDisplay : processDisplays) {
             processPanel.add(processDisplay);
         }
         this.add(processPanel);
+
+        mainPanel.remove(framePanel);
+
+        ArrayList<String> newTexts = kernel.getNewTexts();
+
+        framePanel.updateTexts(newTexts);
+
+        mainPanel.add(framePanel, 1);
+
+        nextButton.setEnabled(!kernel.getDone());
+        prevButton.setEnabled(!kernel.getFirst());
 
         jFrame.pack();
     }
@@ -109,10 +138,8 @@ public class GUI extends JPanel {
         public void actionPerformed(ActionEvent actionEvent) {
             if (actionEvent.getSource() == nextButton) {
                 kernel.parseNextInstruction();
-                processDisplays.clear();
-                for (PCBEntry pcbEntry : kernel.getPcb()) {
-                    processDisplays.add(new ProcessDisplay(pcbEntry));
-                }
+            } else if (actionEvent.getSource() == prevButton) {
+                kernel.undoLastInstruction();
             }
             refreshDisplay();
         }
