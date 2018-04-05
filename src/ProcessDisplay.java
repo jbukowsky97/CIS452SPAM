@@ -2,36 +2,49 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
+/*******************************************************
+ * Jonah Bukowsky
+ *
+ * class to create a visual representation of a process
+ *******************************************************/
 public class ProcessDisplay extends JPanel {
 
+    /* table width and entry height */
     private static final int PAGE_TABLE_WIDTH;
     private static final int ENTRY_HEIGHT;
 
+    /*******************************************************
+     * static initializer
+     *******************************************************/
     static {
         PAGE_TABLE_WIDTH = 100;
-        ENTRY_HEIGHT = 50;
+        ENTRY_HEIGHT = 30;
     }
 
+    /* panels needed for process display */
     private JPanel mainPanel;
-
     private JPanel codePanel;
     private JPanel dataPanel;
-
     private JPanel[] codeEntries;
     private JPanel[] dataEntries;
 
+    /* labels needed for process display */
     private JLabel title;
     private JLabel codeTitle;
     private JLabel dataTitle;
 
+    /* text fields needed for process display */
     private JTextField[] codeTexts;
     private JTextField[] dataTexts;
 
+    /* process being visualized */
     private PCBEntry pcbEntry;
 
+    /*******************************************************
+     * initializer
+     *******************************************************/
     {
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        this.setAlignmentX(JPanel.CENTER_ALIGNMENT);
 
         mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.X_AXIS));
@@ -61,6 +74,11 @@ public class ProcessDisplay extends JPanel {
         this.add(mainPanel);
     }
 
+    /*******************************************************
+     * default constructor
+     *
+     * @param pcbEntry process being visualized
+     *******************************************************/
     public ProcessDisplay(PCBEntry pcbEntry) {
         this.pcbEntry = pcbEntry;
 
@@ -76,6 +94,9 @@ public class ProcessDisplay extends JPanel {
         this.setMaximumSize(this.getPreferredSize());
     }
 
+    /*******************************************************
+     * creates code panels
+     *******************************************************/
     private void createCodePanels() {
         codeEntries = new JPanel[pcbEntry.getCodePages().size()];
         codeTexts = new JTextField[pcbEntry.getCodePages().size()];
@@ -91,7 +112,10 @@ public class ProcessDisplay extends JPanel {
         }
         codePanel.setMaximumSize(codePanel.getPreferredSize());
     }
-    
+
+    /*******************************************************
+     * creates data panels
+     *******************************************************/
     private void createDataPanels() {
         dataEntries = new JPanel[pcbEntry.getDataPages().size()];
         dataTexts = new JTextField[pcbEntry.getDataPages().size()];
