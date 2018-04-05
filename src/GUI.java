@@ -11,6 +11,12 @@ import java.util.ArrayList;
 
 public class GUI extends JPanel {
 
+    private static final int OUTPUT_MAX_LINES;
+
+    static {
+        OUTPUT_MAX_LINES = 39;
+    }
+
     private ArrayList<String> instructions;
 
     private JFrame jFrame;
@@ -129,6 +135,15 @@ public class GUI extends JPanel {
 
         nextButton.setEnabled(!kernel.getDone());
         prevButton.setEnabled(!kernel.getFirst());
+
+        outputArea.setText("");
+        ArrayList<String> logStrings = kernel.getLogStrings();
+        for (int i = 0; i < OUTPUT_MAX_LINES; i++) {
+            if (i >= logStrings.size()) {
+                break;
+            }
+            outputArea.append(logStrings.get(i + Math.max(logStrings.size() - OUTPUT_MAX_LINES, 0)) + "\n");
+        }
 
         jFrame.pack();
     }

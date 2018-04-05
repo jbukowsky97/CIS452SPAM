@@ -26,6 +26,8 @@ public class Kernel {
     private ArrayList<String> instructions;
     private ArrayList<HistoryStructure> historyStructures;
 
+    private ArrayList<String> logStrings;
+
     private int instructionIndex;
 
     {
@@ -37,6 +39,7 @@ public class Kernel {
         pcb = new LinkedList<>();
         freeFrames = new TreeSet<>();
         historyStructures = new ArrayList<>();
+        logStrings = new ArrayList<>();
 
         frameTable = new FrameTableEntry[RAM / PAGE_SIZE];
 
@@ -67,12 +70,15 @@ public class Kernel {
         } else {
             int pID = Integer.parseInt(instruction.substring(0, instruction.indexOf(" ")));
 
+            logStrings.add("Freeing process " + pID);
             this.freeProcess(pID);
+            logStrings.add("Process " + pID + " freed");
         }
-        System.out.println(historyStructures);
     }
 
     public void undoLastInstruction() {
+        logStrings.add("Undoing last instruction");
+
         String instruction = instructions.get(--instructionIndex);
         if (!instruction.contains("-1")) {
             int pID = Integer.parseInt(instruction.substring(0, instruction.indexOf(" ")));
@@ -90,17 +96,23 @@ public class Kernel {
                 }
             }
 
-            System.out.println(historyStructures.get(localIndex + 1));
             this.loadProcess(pID, historyStructures.get(localIndex + 1).getCodeFrames(), historyStructures.get(localIndex + 1).getDataFrames());
         }
+
+        logStrings.add("Undo complete");
     }
 
     private void loadProcess(int pID, int codeSize, int dataSize) {
         int codePages = (codeSize + PAGE_SIZE - 1) / PAGE_SIZE;
         int dataPages = (dataSize + PAGE_SIZE - 1) / PAGE_SIZE;
         PCBEntry pcbEntry = new PCBEntry(pID);
+
+        logStrings.add("Loading program " + pID + " into RAM: code=" + codeSize + " (" + codePages + " pages), data=" + dataSize + " (" + dataPages + " pages)");
+
         this.assignPages(pcbEntry, codePages, dataPages);
         pcb.add(pcbEntry);
+
+        logStrings.add("Program " + pID + " loaded");
     }
 
     private void loadProcess(int pID, ArrayList<Integer> codeFrames, ArrayList<Integer> dataFrames) {
@@ -147,6 +159,8 @@ public class Kernel {
 
             frameTable[nextFreeFrame] = new FrameTableEntry(p.getpID(), i, FrameTableEntry.FRAME_TYPE.CODE);
             historyStructures.get(instructionIndex - 1).addCodeFrame(nextFreeFrame);
+
+            logStrings.add("\tProcess " + p.getpID() + ":\t loaded code page " + i + " to frame " + nextFreeFrame);
         }
 
         for (int i = 0; i < dataPages; i++) {
@@ -155,6 +169,8 @@ public class Kernel {
 
             frameTable[nextFreeFrame] = new FrameTableEntry(p.getpID(), i, FrameTableEntry.FRAME_TYPE.DATA);
             historyStructures.get(instructionIndex - 1).addDataFrame(nextFreeFrame);
+
+            logStrings.add("\tProcess " + p.getpID() + ":\t loaded data page " + i + " to frame " + nextFreeFrame);
         }
 
         p.addCodePages(codePages);
@@ -187,6 +203,10 @@ public class Kernel {
 
     public LinkedList<PCBEntry> getPcb() {
         return pcb;
+    }
+
+    public ArrayList<String> getLogStrings() {
+        return logStrings;
     }
 
     public static void main(String[] args) {
